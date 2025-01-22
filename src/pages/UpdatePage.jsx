@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Container, Button } from 'react-bootstrap';
+import { Container, Button, Modal } from 'react-bootstrap';
 import CodeMirror from "@uiw/react-codemirror";
 import store from 'store2';
 
@@ -24,7 +24,7 @@ const UpdatePage = () => {
     const [language, setLanguage] = useState(initialLanguage || '');
     const [usecase, setUsecase] = useState(initialUsecase || '');
     const [showWarningAlert, setShowWarningAlert] = useState(false);
-    const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+    const [showModal, setShowModal] = useState(false);
 
     const handleUpdate = () => {
         if (!title || !language || !usecase || !code) {
@@ -50,12 +50,7 @@ const UpdatePage = () => {
         store.set('snippets', updatedSnippets);
 
         setShowWarningAlert(false);
-        setShowSuccessAlert(true);
-
-        setTimeout(() => {
-            setShowSuccessAlert(false);
-            navigate('/', { state: { filters } }); // Pass filters back to Home
-        }, 1500);
+        setShowModal(true);
     };
 
     return (
@@ -74,18 +69,6 @@ const UpdatePage = () => {
                             hasButton={false}
                             showAlert={showWarningAlert}
                             setShowAlert={setShowWarningAlert}
-                        />
-                    )}
-
-                    {/* Success Alert */}
-                    {showSuccessAlert && (
-                        <AppAlert
-                            alertTitle=""
-                            alertVariant="success"
-                            alertContent="✅ Code Snippet Updated Successfully!"
-                            hasButton={false}
-                            showAlert={showSuccessAlert}
-                            setShowAlert={setShowSuccessAlert}
                         />
                     )}
 
@@ -133,6 +116,23 @@ const UpdatePage = () => {
                     </Button>
                 </Link>
             </Container>
+
+            {/* Notification Modal */}
+            <Modal show={showModal} onHide={() => setShowModal(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Snippet Updated</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    Successfully updated the code snippet!
+                </Modal.Body>
+                <Modal.Footer>
+                    <Link to="/">
+                        <Button size="lg" variant="success" onClick={() => setShowModal(false)}>
+                            OK
+                        </Button>
+                    </Link>
+                </Modal.Footer>
+            </Modal>
         </>
     );
 };

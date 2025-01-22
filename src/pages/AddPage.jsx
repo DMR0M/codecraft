@@ -1,6 +1,6 @@
 import React, { useState, useReducer } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Container, Button } from 'react-bootstrap';
+import { Container, Button, Modal } from 'react-bootstrap';
 import CodeMirror from "@uiw/react-codemirror";
 import store from 'store2';
 import { v4 as uuidv4 } from 'uuid';
@@ -18,11 +18,7 @@ const AddPage = () => {
     const [language, setLanguage] = useState('');
     const [usecase, setUsecase] = useState('');
     const [showWarningAlert, setShowWarningAlert] = useState(false);
-    const [showSuccessAlert, setShowSuccessAlert] = useState(false);
-
-    console.log(language.toLowerCase());
-
-    const navigate = useNavigate();
+    const [showModal, setShowModal] = useState(false);
 
     const handleSave = () => {
         if (!title || !language || !usecase || !code) {
@@ -50,13 +46,7 @@ const AddPage = () => {
         setLanguage('');
         setUsecase('');
         setShowWarningAlert(false);
-        setShowSuccessAlert(true);
-
-        // Automatically navigate after a delay
-        setTimeout(() => {
-            setShowSuccessAlert(false);
-            navigate('/');
-        }, 1500);
+        setShowModal(true);
     };
 
     return (
@@ -76,18 +66,6 @@ const AddPage = () => {
                             buttonText=""
                             showAlert={showWarningAlert}
                             setShowAlert={setShowWarningAlert}
-                        />
-                    )}
-
-                    {/* Success Alert */}
-                    {showSuccessAlert && (
-                        <AppAlert
-                            alertTitle=""
-                            alertVariant="success"
-                            alertContent="✅ Code Snippet Updated Successfully!"
-                            hasButton={false}
-                            showAlert={showSuccessAlert}
-                            setShowAlert={setShowSuccessAlert}
                         />
                     )}
 
@@ -134,6 +112,23 @@ const AddPage = () => {
                     </Button>
                 </Link>
             </Container>
+
+            {/* Notification Modal */}
+            <Modal show={showModal} onHide={() => setShowModal(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Added a Code Snippet</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    Successfully created a new code snippet!
+                </Modal.Body>
+                <Modal.Footer>
+                    <Link to="/">
+                        <Button variant="success">
+                            OK
+                        </Button>
+                    </Link>
+                </Modal.Footer>
+            </Modal>
         </>
     );
 };
