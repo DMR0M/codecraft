@@ -40,6 +40,8 @@ const HomePage = () => {
         return matchesTitle && matchesLanguage && matchesUsecase;
     });
 
+    console.log(filteredSnippets.length);
+
     return (
         <>
             <h1 className="home-page-title text-white d-flex justify-content-center align-items-center my-4">
@@ -101,12 +103,19 @@ const HomePage = () => {
                         </Link>
                     </p>
                 )}
-                <Container>
-                    <p>
-                        You have a total of 
-                        <strong> {snippets.length ?? 0} code snippets </strong> saved.
-                    </p>
-                </Container>
+                { filteredSnippets.length === snippets.length ?
+                    <Container>
+                        <p>
+                            You have a total of 
+                            <strong> {snippets.length ?? 0} code snippet(s) </strong> saved.
+                        </p>
+                    </Container> :
+                    <Container>
+                        <p>
+                            Found <strong> {filteredSnippets.length ?? 0} code snippet(s)</strong>.
+                        </p>
+                    </Container>
+                }
             </section>
         </>
     );
