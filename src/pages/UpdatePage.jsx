@@ -94,8 +94,9 @@ const UpdatePage = () => {
                         onChange={(e) => setUsecase(e.target.value)}
                         placeholder="Enter the description of the code snippet"
                     />
-                    <p>Code Snippet: </p>
+                    <p>Update your code here: </p>
                     <CodeMirror
+                        className="border rounded"
                         value={code}
                         height="400px"
                         theme="dark"

@@ -92,8 +92,9 @@ const AddPage = () => {
                         as="textarea"
                         rows={2}
                     />
-                    <p>Code Snippet: </p>
+                    <p>Write your code here: </p>
                     <CodeMirror
+                        className="border rounded"
                         value={code}
                         height="400px"
                         theme="dark"

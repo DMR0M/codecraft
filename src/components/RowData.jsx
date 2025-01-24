@@ -13,7 +13,7 @@ const RowData = ({ id, title, language, code, usecase, deleteHandler, filters: f
 
     return (
         <>
-            <Container className="bg-primary rounded my-4 p-3">
+            <Container className="bg-primary rounded border my-4 p-3">
                 {/* Header Row */}
                 <Row className="mb-2 text-white">
                     <Col xs={4} sm={3} md={2}>Title:</Col>
