@@ -16,7 +16,13 @@ const UpdatePage = () => {
     const navigate = useNavigate();
 
     // Destructure initial values from location.state
-    const { id, title: initialTitle, language: initialLanguage, code: initialCode, usecase: initialUsecase, filters } = location.state;
+    const { 
+        id, title: initialTitle, 
+        language: initialLanguage, 
+        code: initialCode, 
+        usecase: initialUsecase, 
+        filters 
+    } = location.state;
 
     // Component states
     const [title, setTitle] = useState(initialTitle || '');
@@ -43,9 +49,11 @@ const UpdatePage = () => {
 
         // Update the snippets in localStorage
         const existingSnippets = store.get('snippets') || [];
-        const updatedSnippets = existingSnippets.map((snippet) =>
-            snippet.id === id ? updatedSnippet : snippet
+        const updatedSnippets = existingSnippets.filter(
+            (snippet) => snippet.id !== id
         );
+        // Add updated snippet to the start
+        updatedSnippets.unshift(updatedSnippet); 
 
         store.set('snippets', updatedSnippets);
 

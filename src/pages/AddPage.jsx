@@ -38,7 +38,7 @@ const AddPage = () => {
 
         // Save to localStorage using store2
         const existingSnippets = store.get('snippets') || [];
-        store.set('snippets', [...existingSnippets, newSnippet]);
+        store.set('snippets', [newSnippet, ...existingSnippets]);
 
         // Clear fields
         setTitle('');
