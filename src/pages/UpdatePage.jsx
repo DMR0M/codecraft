@@ -37,7 +37,7 @@ const UpdatePage = () => {
     const [showTagAlert, setShowTagAlert] = useState(false);
 
     const handleUpdate = () => {
-        if (!title || !language || !usecase || !code || !tags) {
+        if (!title || !language || !usecase || !code || tags.length === 0) {
             setShowTagAlert(false);
             setShowWarningAlert(true);
 

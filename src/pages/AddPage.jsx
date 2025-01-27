@@ -25,7 +25,7 @@ const AddPage = () => {
     const [showModal, setShowModal] = useState(false);
 
     const handleSave = () => {
-        if (!title || !language || !usecase || !code || !tags) {
+        if (!title || !language || !usecase || !code || tags.length === 0) {
             setShowTagAlert(false);
             setShowWarningAlert(true);
 
