@@ -19,6 +19,7 @@ const DetailPage = () => {
         language,
         usecase = '',
         code = '',
+        filterTags,
         filters = {},
     } = location.state || {};
 
@@ -82,7 +83,7 @@ const DetailPage = () => {
                         </Button>
                         <Link
                             to={`/update_codesnippet/${id}`}
-                            state={{ id, title, language, code, usecase }}
+                            state={{ id, title, language, code, usecase, filterTags }}
                         >
                             <Button className="m-2" variant="primary" size="sm">
                                 <img src={editIcon} alt="edit-icon" className="page-icon" />

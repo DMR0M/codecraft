@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Container, Button, Modal, Row, Stack  } from 'react-bootstrap';
 import CodeMirror from "@uiw/react-codemirror";
 import store from 'store2';
@@ -14,7 +14,6 @@ import getLanguageExtension from '../utils/getLanguageExtension';
 
 const UpdatePage = () => {
     const location = useLocation();
-    const navigate = useNavigate();
 
     // Destructure initial values from location.state
     const { 
@@ -128,6 +127,8 @@ const UpdatePage = () => {
                         value={usecase}
                         onChange={(e) => setUsecase(e.target.value)}
                         placeholder="Enter the description of the code snippet"
+                        as="textarea"
+                        rows={2}
                     />
                     {/* Code Tags */}
                     <Row>
