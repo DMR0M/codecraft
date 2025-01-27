@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Container, Button, Row, Col, Modal } from 'react-bootstrap';
+import { Container, Button, Row, Col, Modal, Stack } from 'react-bootstrap';
+
+import AppBadge from './AppBadge';
 
 
-const RowData = ({ id, title, language, code, usecase, deleteHandler, filters: filterState }) => {
+const RowData = ({ id, title, language, code, usecase, filterTags: tags, deleteHandler, filters: filterState }) => {
     const [showModal, setShowModal] = useState(false);
 
     const handleDelete = () => {
@@ -32,7 +34,7 @@ const RowData = ({ id, title, language, code, usecase, deleteHandler, filters: f
                     <Col xs={4} sm={3} md={2} className="d-flex justify-content-center align-items-center">
                         <Link
                             to={`/codesnippet_detail/${id}`}
-                            state={{ id, title, language, code, usecase, filters: filterState }}
+                            state={{ id, title, language, code, usecase, filterTags: tags, filters: filterState }}
                         >
                             <Button variant="outline-secondary" size="sm">View</Button>
                         </Link>
@@ -41,7 +43,7 @@ const RowData = ({ id, title, language, code, usecase, deleteHandler, filters: f
                     <Col xs={4} sm={3} md={2} className="d-flex justify-content-center align-items-center">
                         <Link
                             to={`/update_codesnippet/${id}`}
-                            state={{ id, title, language, code, usecase, filters: filterState }}
+                            state={{ id, title, language, code, usecase, filterTags: tags, filters: filterState }}
                         >
                             <Button variant="outline-warning" size="sm">Edit</Button>
                         </Link>
@@ -54,6 +56,21 @@ const RowData = ({ id, title, language, code, usecase, deleteHandler, filters: f
                         >
                             Delete
                         </Button>
+                    </Col>
+                </Row>
+                <Row className="mt-4 text-white">
+                    <Col xs={2} sm={1} md={1}>Tags:</Col>
+                    <Col xs={2} sm={1} md={1}>
+                        <Stack direction="horizontal" gap={2}>
+                            {tags.map((tag, i) => (
+                                <AppBadge 
+                                    key={i}
+                                    bgColor="light" 
+                                    txtColor="dark" 
+                                    text={tag}
+                                />
+                            ))}
+                        </Stack>
                     </Col>
                 </Row>
             </Container>

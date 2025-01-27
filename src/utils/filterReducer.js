@@ -7,6 +7,8 @@ const filterReducer = (state, action) => {
             return { ...state, language: action.payload };
         case 'SET_USECASE':
             return { ...state, usecase: action.payload };
+        case 'SET_TAG':
+            return { ...state, codeTags: action.payload };
         default:
             return state;
     }

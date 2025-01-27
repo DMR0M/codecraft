@@ -1,6 +1,6 @@
-import React, { useState, useReducer } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Container, Button, Modal } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Container, Button, Modal, Row, Stack } from 'react-bootstrap';
 import CodeMirror from "@uiw/react-codemirror";
 import store from 'store2';
 import { v4 as uuidv4 } from 'uuid';
@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import TextField from '../components/Textfield';
 import Dropdown from '../components/Dropdown';
 import AppAlert from '../components/AppAlert';
+import AppBadge from '../components/AppBadge';
 import programmingLanguages from '../utils/progLanguages';
 import getLanguageExtension from '../utils/getLanguageExtension';
 
@@ -17,24 +18,28 @@ const AddPage = () => {
     const [code, setCode] = useState('');
     const [language, setLanguage] = useState('');
     const [usecase, setUsecase] = useState('');
+    const [tag, setTag] = useState('');
+    const [tags, setTags] = useState([]);
     const [showWarningAlert, setShowWarningAlert] = useState(false);
+    const [showTagAlert, setShowTagAlert] = useState(false);
     const [showModal, setShowModal] = useState(false);
 
     const handleSave = () => {
-        if (!title || !language || !usecase || !code) {
+        if (!title || !language || !usecase || !code || !tags) {
+            setShowTagAlert(false);
             setShowWarningAlert(true);
 
             // Hide the warning alert after 1.5 seconds
             setTimeout(() => {
                 setShowWarningAlert(false);
-            }, 1500);
+            }, 2500);
 
             return;
         }
 
         // Generate a unique ID for the snippet
         const id = uuidv4();
-        const newSnippet = { id, title, language, code, usecase };
+        const newSnippet = { id, title, language, code, usecase, tags };
 
         // Save to localStorage using store2
         const existingSnippets = store.get('snippets') || [];
@@ -45,9 +50,31 @@ const AddPage = () => {
         setCode('');
         setLanguage('');
         setUsecase('');
+        setTags([]);
         setShowWarningAlert(false);
         setShowModal(true);
     };
+
+    const handleTags = () => {
+        if (tags.length === 4) {
+            setShowWarningAlert(false);
+            setShowTagAlert(true);
+
+            // Hide the tag alert after 1.5 seconds
+            setTimeout(() => {
+                setShowTagAlert(false);
+            }, 2500);
+
+            return;
+        }
+
+        setTags([...tags, tag.toLowerCase()]);
+        setTag('');
+    };
+
+    const handleTagClick = (tagText) => {
+        setTags(tags.filter(tag => tag !== tagText));
+    }
 
     return (
         <>
@@ -56,7 +83,7 @@ const AddPage = () => {
             </h1>
             <section>
                 <Container>
-                    {/* Warning Alert */}
+                    {/* App Alerts */}
                     {showWarningAlert && (
                         <AppAlert 
                             alertTitle=""
@@ -68,7 +95,6 @@ const AddPage = () => {
                             setShowAlert={setShowWarningAlert}
                         />
                     )}
-
                     <TextField
                         id="code-title"
                         label="Title:"
@@ -92,6 +118,49 @@ const AddPage = () => {
                         as="textarea"
                         rows={2}
                     />
+                    {/* Code Tags */}
+                    <Row>
+                        <TextField
+                            id="code-tags"
+                            label="Tags:"
+                            value={tag}
+                            onChange={(e) => setTag(e.target.value)}
+                            placeholder="Enter tags for code snippet "
+                            addText="ex. fundamentals, framework, algorithms"
+                        />
+                    </Row>
+                    {showTagAlert && (
+                        <AppAlert 
+                            alertTitle=""
+                            alertVariant="warning" 
+                            alertContent="⚠️ Only a maximum of 4 tags are allowed"
+                            hasButton={false}s
+                            buttonText=""
+                            showAlert={showTagAlert}
+                            setShowAlert={setShowTagAlert}
+                        />
+                    )}
+                    <Button className="m-2" variant="outline-light" onClick={handleTags}>
+                        + Add Tag
+                    </Button>
+                    <Button className="m-3" variant="outline-danger" onClick={() => setTags([])}>
+                        Reset Tags
+                    </Button>
+                    <Row className="my-2">
+                        <Stack className="m-2" direction="horizontal" gap={2}>
+                            {tags.map((tag, i) => (
+                                <AppBadge 
+                                    key={i}
+                                    bgColor="light" 
+                                    txtColor="dark" 
+                                    text={tag}
+                                    hasCloseBtn={true}
+                                    btnClickHander={handleTagClick}
+                                />
+                            ))}
+                        </Stack>
+                    </Row>
+
                     <p>Write your code here: </p>
                     <CodeMirror
                         className="border rounded"
