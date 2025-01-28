@@ -14,67 +14,86 @@ import getLanguageExtension from '../utils/getLanguageExtension';
 
 
 const AddPage = () => {
-    const [title, setTitle] = useState('');
-    const [code, setCode] = useState('');
-    const [language, setLanguage] = useState('');
-    const [usecase, setUsecase] = useState('');
-    const [tag, setTag] = useState('');
-    const [tags, setTags] = useState([]);
+    const [formData, setFormData] = useState({
+        title: '',
+        code: '',
+        language: '',
+        usecase: '',
+        tag: '',
+        tags: [],
+    });
     const [showWarningAlert, setShowWarningAlert] = useState(false);
     const [showTagAlert, setShowTagAlert] = useState(false);
     const [showModal, setShowModal] = useState(false);
 
+    console.log(formData);
+
     const handleSave = () => {
+        const { title, code, language, usecase, tags } = formData;
+
         if (!title || !language || !usecase || !code || tags.length === 0) {
             setShowTagAlert(false);
             setShowWarningAlert(true);
 
-            // Hide the warning alert after 1.5 seconds
             setTimeout(() => {
                 setShowWarningAlert(false);
             }, 2500);
-
             return;
         }
 
-        // Generate a unique ID for the snippet
         const id = uuidv4();
-        const newSnippet = { id, title, language, code, usecase, tags };
+        const newSnippet = { id, ...formData, tags };
 
-        // Save to localStorage using store2
         const existingSnippets = store.get('snippets') || [];
         store.set('snippets', [newSnippet, ...existingSnippets]);
 
-        // Clear fields
-        setTitle('');
-        setCode('');
-        setLanguage('');
-        setUsecase('');
-        setTags([]);
+        // Reset formData
+        setFormData({
+            title: '',
+            code: '',
+            language: '',
+            usecase: '',
+            tag: '',
+            tags: [],
+        });
         setShowWarningAlert(false);
         setShowModal(true);
     };
 
     const handleTags = () => {
-        if (tags.length === 4) {
+        if (formData.tags.length === 4) {
             setShowWarningAlert(false);
             setShowTagAlert(true);
 
-            // Hide the tag alert after 1.5 seconds
             setTimeout(() => {
                 setShowTagAlert(false);
             }, 2500);
-
             return;
         }
 
-        setTags([...tags, tag.toLowerCase()]);
-        setTag('');
+        if (formData.tag.trim()) {
+            setFormData((prev) => ({
+                ...prev,
+                tags: [...prev.tags, prev.tag.toLowerCase()],
+                tag: '',
+            }));
+        }
     };
 
     const handleTagClick = (tagText) => {
-        setTags(tags.filter(tag => tag !== tagText));
-    }
+        setFormData((prev) => ({
+            ...prev,
+            tags: prev.tags.filter((tag) => tag !== tagText),
+        }));
+    };
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+    };
 
     return (
         <>
@@ -83,11 +102,10 @@ const AddPage = () => {
             </h1>
             <section>
                 <Container>
-                    {/* App Alerts */}
                     {showWarningAlert && (
-                        <AppAlert 
+                        <AppAlert
                             alertTitle=""
-                            alertVariant="danger" 
+                            alertVariant="danger"
                             alertContent="⚠️ Please fill in all fields!"
                             hasButton={false}
                             buttonText=""
@@ -97,44 +115,47 @@ const AddPage = () => {
                     )}
                     <TextField
                         id="code-title"
+                        name="title"
                         label="Title:"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
+                        value={formData.title}
+                        onChange={handleChange}
                         placeholder="Enter the title of the code snippet"
                     />
                     <Dropdown
                         id="code-language"
+                        name="language"
                         label="Language:"
-                        value={language}
-                        onChange={(e) => setLanguage(e.target.value)}
+                        value={formData.language}
+                        onChange={handleChange}
                         options={programmingLanguages}
                     />
                     <TextField
                         id="code-usecase"
+                        name="usecase"
                         label="Description:"
-                        value={usecase}
-                        onChange={(e) => setUsecase(e.target.value)}
+                        value={formData.usecase}
+                        onChange={handleChange}
                         placeholder="Enter the description of the code snippet"
                         as="textarea"
                         rows={2}
                     />
-                    {/* Code Tags */}
                     <Row>
                         <TextField
                             id="code-tags"
+                            name="tag"
                             label="Tags:"
-                            value={tag}
-                            onChange={(e) => setTag(e.target.value)}
+                            value={formData.tag}
+                            onChange={handleChange}
                             placeholder="Enter tags for code snippet "
                             addText="ex. fundamentals, framework, algorithms"
                         />
                     </Row>
                     {showTagAlert && (
-                        <AppAlert 
+                        <AppAlert
                             alertTitle=""
-                            alertVariant="warning" 
+                            alertVariant="warning"
                             alertContent="⚠️ Only a maximum of 4 tags are allowed"
-                            hasButton={false}s
+                            hasButton={false}
                             buttonText=""
                             showAlert={showTagAlert}
                             setShowAlert={setShowTagAlert}
@@ -143,19 +164,19 @@ const AddPage = () => {
                     <Button className="m-2" variant="outline-light" onClick={handleTags}>
                         + Add Tag
                     </Button>
-                    <Button className="m-3" variant="outline-danger" onClick={() => setTags([])}>
+                    <Button className="m-3" variant="outline-danger" onClick={() => setFormData((prev) => ({ ...prev, tags: [] }))}>
                         Reset Tags
                     </Button>
                     <Row className="my-2">
                         <Stack className="m-2" direction="horizontal" gap={2}>
-                            {tags.map((tag, i) => (
-                                <AppBadge 
+                            {formData.tags.map((tag, i) => (
+                                <AppBadge
                                     key={i}
-                                    bgColor="light" 
-                                    txtColor="dark" 
+                                    bgColor="light"
+                                    txtColor="dark"
                                     text={tag}
                                     hasCloseBtn={true}
-                                    btnClickHander={handleTagClick}
+                                    btnClickHander={() => handleTagClick(tag)}
                                 />
                             ))}
                         </Stack>
@@ -164,11 +185,13 @@ const AddPage = () => {
                     <p>Write your code here: </p>
                     <CodeMirror
                         className="border rounded"
-                        value={code}
+                        value={formData.code}
                         height="400px"
                         theme="dark"
-                        extensions={[getLanguageExtension(language.toLowerCase())]}
-                        onChange={(value) => setCode(value)}
+                        extensions={[getLanguageExtension(formData.language.toLowerCase())]}
+                        onChange={(value) =>
+                            setFormData((prev) => ({ ...prev, code: value }))
+                        }
                     />
                 </Container>
             </section>
@@ -183,19 +206,14 @@ const AddPage = () => {
                 </Link>
             </Container>
 
-            {/* Notification Modal */}
             <Modal show={showModal} onHide={() => setShowModal(false)}>
                 <Modal.Header closeButton>
                     <Modal.Title>Added a Code Snippet</Modal.Title>
                 </Modal.Header>
-                <Modal.Body>
-                    Successfully created a new code snippet!
-                </Modal.Body>
+                <Modal.Body>Successfully created a new code snippet!</Modal.Body>
                 <Modal.Footer>
                     <Link to="/">
-                        <Button variant="success">
-                            OK
-                        </Button>
+                        <Button variant="success">OK</Button>
                     </Link>
                 </Modal.Footer>
             </Modal>

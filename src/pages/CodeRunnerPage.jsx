@@ -16,6 +16,7 @@ const CodeRunnerPage = () => {
     code = "", 
     usecase = "", 
     validLanguage, 
+    filterTags,
   } = location.state || {};
 
   const [input, setInput] = useState("");
@@ -124,7 +125,8 @@ const CodeRunnerPage = () => {
                   title, 
                   language: validLanguage, 
                   usecase, 
-                  code,  
+                  code, 
+                  filterTags, 
                 }
               }>
               <Button className="m-3" variant="primary" size="lg">

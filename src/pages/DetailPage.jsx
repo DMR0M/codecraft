@@ -83,7 +83,7 @@ const DetailPage = () => {
                         </Button>
                         <Link
                             to={`/update_codesnippet/${id}`}
-                            state={{ id, title, language, code, usecase, filterTags }}
+                            state={{ id, title, language, code, usecase, filterTags, filters }}
                         >
                             <Button className="m-2" variant="primary" size="sm">
                                 <img src={editIcon} alt="edit-icon" className="page-icon" />
@@ -102,7 +102,7 @@ const DetailPage = () => {
                             variant="primary"
                             size="sm"
                             onClick={() =>
-                                navigate("/run_code", { state: { id, title, code, usecase, validLanguage } })
+                                navigate("/run_code", { state: { id, title, code, usecase, validLanguage, filterTags } })
                             }
                             >
                                 Execute Code

@@ -10,7 +10,6 @@ const AppBadge = ({ bgColor, txtColor, text, hasCloseBtn, btnClickHander }) => {
             <Badge bg={bgColor} text={txtColor} className="text-center">
                 <CloseButton
                     className="m-1"
-                    variant="primary"
                     aria-label="Close"
                     onClick={() => btnClickHander(text)}
                 />

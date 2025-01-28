@@ -2,11 +2,12 @@ import React from 'react';
 import Form from 'react-bootstrap/Form';
 
 
-const TextField = ({ id, as, label, value, onChange, rows, addText, placeholder }) => (
+const TextField = ({ id, name, as, label, value, onChange, rows, addText, placeholder }) => (
     <Form.Group className='mb-3'>
         <Form.Label htmlFor={id}>{label}</Form.Label>
         <Form.Control
             type='text'
+            name={name}
             id={id}
             as={as ?? 'input'}
             value={value}
