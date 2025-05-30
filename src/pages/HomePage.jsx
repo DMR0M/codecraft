@@ -1,8 +1,6 @@
 import { useState, useEffect, useReducer } from 'react';
 import { Accordion, Container, Form, Row, Button, Stack } from 'react-bootstrap';
-import { Link, useLocation } from 'react-router-dom';
-import store from 'store2';
-
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import RowData from '../components/RowData';
 import TextField from '../components/Textfield';
 import Dropdown from '../components/Dropdown';
@@ -10,7 +8,7 @@ import AppBadge from '../components/AppBadge';
 import AppAlert from '../components/AppAlert';
 import programmingLanguages from '../utils/progLanguages';
 import filterReducer from '../utils/filterReducer';
-
+import { useAuth } from '../contexts/AuthContext';   // Correct for named exports
 
 const initialState = {
     title: '',
@@ -21,48 +19,99 @@ const initialState = {
 
 const HomePage = () => {
     const location = useLocation();
+    const navigate = useNavigate();
+    const auth = useAuth();
+    const { token, isAuthenticated, loading } = auth;
     const [snippets, setSnippets] = useState([]);
     const [state, dispatch] = useReducer(filterReducer, location.state?.filters || initialState);
     const [tag, setTag] = useState('');
     const [tags, setTags] = useState([]);
     const [showTagAlert, setShowTagAlert] = useState(false);
 
+    // ✅ Wait for loading to finish before redirecting if not authenticated
     useEffect(() => {
-        const storedSnippets = store.get('snippets') || [];
-        setSnippets(storedSnippets);
-    }, []);
+        if (!loading && !isAuthenticated) {
+            navigate('/login');
+        }
+    }, [loading, isAuthenticated, navigate]);
 
-    const deleteSnippet = (id) => {
-        const updatedSnippets = snippets.filter((snippet) => snippet.id !== id);
-        setSnippets(updatedSnippets);
-        store.set('snippets', updatedSnippets);
+    // ✅ Fetch snippets only if authenticated and not loading
+    useEffect(() => {
+        if (!token || loading) return;
+
+        const fetchSnippets = async () => {
+            try {
+                console.log('API base URL:', import.meta.env.VITE_API_BASE_URL);
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/snippets`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
+                if (!response.ok) throw new Error('Failed to fetch snippets');
+                const data = await response.json();
+                setSnippets(data);
+            } catch (error) {
+                console.error(error.message);
+                navigate('/login');
+            }
+        };
+
+        fetchSnippets();
+    }, [token, loading, navigate]);
+
+    const deleteSnippet = async (id) => {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/snippets/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+    
+            if (!response.ok) {
+                throw new Error('Failed to delete the snippet');
+            }
+    
+            // Remove snippet from UI only after successful deletion
+            const updatedSnippets = snippets.filter((snippet) => snippet._id !== id);
+            setSnippets(updatedSnippets);
+        } catch (error) {
+            console.error(error.message);
+            alert('❌ Error deleting snippet. Please try again.');
+        }
     };
 
     const filteredSnippets = snippets.filter((snippet) => {
-        const matchesTitle = snippet.title.toLowerCase().includes(state.title ? state.title.toLowerCase() : "");
+        const matchesTitle = snippet.title.toLowerCase().includes(state.title?.toLowerCase() ?? "");
         const matchesLanguage = state.language ? snippet.language === state.language : true;
-        const matchesUsecase = snippet.usecase.toLowerCase().includes(state.usecase ? state.usecase.toLowerCase() : "");
+        const matchesUsecase = snippet.usecase.toLowerCase().includes(state.usecase?.toLowerCase() ?? "");
         const matchesTags = tags.length !== 0 ? tags.some((tag) => snippet.tags.includes(tag)) : true;
-
         return matchesTitle && matchesLanguage && matchesUsecase && matchesTags;
     });
 
     const handleTags = () => {
         if (tags.length === 4) {
             setShowTagAlert(true);
-
-            // Hide the tag alert after 1.5 seconds
-            setTimeout(() => {
-                setShowTagAlert(false);
-            }, 2500);
-
+            setTimeout(() => setShowTagAlert(false), 2500);
             return;
         }
 
-        setTags([...tags, tag]);
-        setTag('');
+        if (tag.trim()) {
+            setTags([...tags, tag.trim()]);
+            setTag('');
+        }
     };
-    
+
+    // ✅ Optional: Show loading state while checking auth
+    if (loading) {
+        return (
+            <div className="text-white text-center mt-5">
+                Checking authentication...
+            </div>
+        );
+    }
+
     return (
         <>
             <h1 className="home-page-title text-white d-flex justify-content-center align-items-center my-4">
@@ -75,8 +124,6 @@ const HomePage = () => {
                         <Accordion.Header>Search Filters</Accordion.Header>
                         <Accordion.Body>
                             <Form>
-
-                                {/* Search By Title */}
                                 <TextField
                                     id="code-title"
                                     label="Search by title:"
@@ -84,8 +131,6 @@ const HomePage = () => {
                                     onChange={(e) => dispatch({ type: 'SET_TITLE', payload: e.target.value })}
                                     placeholder="Enter the title of the code snippet"
                                 />
-
-                                {/* Search By Language */}
                                 <Dropdown
                                     id="code-language"
                                     label="Search by language:"
@@ -93,8 +138,6 @@ const HomePage = () => {
                                     onChange={(e) => dispatch({ type: 'SET_LANGUAGE', payload: e.target.value })}
                                     options={programmingLanguages}
                                 />
-
-                                {/* Search By Desccription */}
                                 <TextField
                                     id="code-usecase"
                                     label="Search by description:"
@@ -102,14 +145,12 @@ const HomePage = () => {
                                     onChange={(e) => dispatch({ type: 'SET_USECASE', payload: e.target.value })}
                                     placeholder="Enter the description of the code snippet"
                                 />
-
-                                {/* Search By Tags */}
                                 <Row>
                                     <TextField
                                         id="code-tags"
                                         label="Search by tags:"
                                         value={tag}
-                                        onChange={(e) => {setTag(e.target.value);}}
+                                        onChange={(e) => setTag(e.target.value)}
                                         placeholder="Enter tags for code snippet "
                                         addText="ex. fundamentals, framework, algorithms"
                                     />
@@ -119,7 +160,7 @@ const HomePage = () => {
                                         alertTitle=""
                                         alertVariant="warning" 
                                         alertContent="⚠️ Only a maximum of 4 tags are allowed"
-                                        hasButton={false}s
+                                        hasButton={false}
                                         buttonText=""
                                         showAlert={showTagAlert}
                                         setShowAlert={setShowTagAlert}
@@ -127,7 +168,7 @@ const HomePage = () => {
                                 )}
                                 <Button className="m-2" variant="outline-light" onClick={() => {
                                     handleTags();
-                                    dispatch({ type: 'SET_TAG', payload: tags })
+                                    dispatch({ type: 'SET_TAG', payload: tags });
                                 }}>
                                     + Add Tag
                                 </Button>
@@ -158,7 +199,7 @@ const HomePage = () => {
                     filteredSnippets.map((snippet, index) => (
                         <RowData
                             key={index}
-                            id={snippet.id}
+                            id={snippet._id}
                             title={snippet.title}
                             language={snippet.language}
                             code={snippet.code}
@@ -176,19 +217,14 @@ const HomePage = () => {
                         </Link>
                     </p>
                 )}
-                { filteredSnippets.length === snippets.length ?
-                    <Container>
-                        <p>
-                            You have a total of 
-                            <strong> {snippets.length ?? 0} code snippet(s) </strong> saved.
-                        </p>
-                    </Container> :
-                    <Container>
-                        <p>
-                            Found <strong> {filteredSnippets.length ?? 0} code snippet(s)</strong>.
-                        </p>
-                    </Container>
-                }
+                <Container>
+                    <p>
+                        {filteredSnippets.length === snippets.length
+                            ? <>You have a total of <strong>{snippets.length}</strong> code snippet(s).</>
+                            : <>Found <strong>{filteredSnippets.length}</strong> code snippet(s).</>
+                        }
+                    </p>
+                </Container>
             </section>
         </>
     );

@@ -2,8 +2,6 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Button, Modal, Row, Stack } from 'react-bootstrap';
 import CodeMirror from "@uiw/react-codemirror";
-import store from 'store2';
-import { v4 as uuidv4 } from 'uuid';
 
 import TextField from '../components/Textfield';
 import Dropdown from '../components/Dropdown';
@@ -11,6 +9,8 @@ import AppAlert from '../components/AppAlert';
 import AppBadge from '../components/AppBadge';
 import programmingLanguages from '../utils/progLanguages';
 import getLanguageExtension from '../utils/getLanguageExtension';
+
+import { useAuth } from '../contexts/AuthContext';
 
 
 const AddPage = () => {
@@ -25,40 +25,57 @@ const AddPage = () => {
     const [showWarningAlert, setShowWarningAlert] = useState(false);
     const [showTagAlert, setShowTagAlert] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const { token } = useAuth();
 
     console.log(formData);
 
-    const handleSave = () => {
+    const handleSave = async () => {
         const { title, code, language, usecase, tags } = formData;
-
+      
         if (!title || !language || !usecase || !code || tags.length === 0) {
-            setShowTagAlert(false);
-            setShowWarningAlert(true);
-
-            setTimeout(() => {
-                setShowWarningAlert(false);
-            }, 2500);
-            return;
+          setShowTagAlert(false);
+          setShowWarningAlert(true);
+          setTimeout(() => {
+            setShowWarningAlert(false);
+          }, 2500);
+          return;
         }
-
-        const id = uuidv4();
-        const newSnippet = { id, ...formData, tags };
-
-        const existingSnippets = store.get('snippets') || [];
-        store.set('snippets', [newSnippet, ...existingSnippets]);
-
-        // Reset formData
-        setFormData({
+      
+        try {
+          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/create-snippet`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ title, code, language, usecase, tags }),
+          });
+      
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to save snippet');
+          }
+      
+          setFormData({
             title: '',
             code: '',
             language: '',
             usecase: '',
             tag: '',
             tags: [],
-        });
-        setShowWarningAlert(false);
-        setShowModal(true);
-    };
+          });
+          setShowWarningAlert(false);
+          setShowModal(true);
+        } catch (error) {
+          console.error('Error saving snippet:', error.message);
+          setShowWarningAlert(true);
+          setTimeout(() => {
+            setShowWarningAlert(false);
+          }, 3000);
+        }
+      };
+      
+      
 
     const handleTags = () => {
         if (formData.tags.length === 4) {

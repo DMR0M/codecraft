@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Container, Button, Modal, Row, Stack  } from 'react-bootstrap';
+import { Container, Button, Modal, Row, Stack } from 'react-bootstrap';
 import CodeMirror from "@uiw/react-codemirror";
-import store from 'store2';
+import axios from 'axios';
 
 import TextField from '../components/Textfield';
 import Dropdown from '../components/Dropdown';
@@ -11,11 +11,9 @@ import AppBadge from '../components/AppBadge';
 import programmingLanguages from '../utils/progLanguages';
 import getLanguageExtension from '../utils/getLanguageExtension';
 
-
 const UpdatePage = () => {
     const location = useLocation();
 
-    // Destructure initial values from location.state
     const {
         id,
         title: initialTitle,
@@ -26,7 +24,6 @@ const UpdatePage = () => {
         filters
     } = location.state;
 
-    // Component states
     const [formData, setFormData] = useState({
         title: initialTitle || '',
         language: initialLanguage || '',
@@ -35,54 +32,55 @@ const UpdatePage = () => {
         tag: '',
         tags: [...filterTags],
     });
+
     const [showWarningAlert, setShowWarningAlert] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [showTagAlert, setShowTagAlert] = useState(false);
 
-    console.log(formData);
-
-    const handleUpdate = () => {
+    const handleUpdate = async () => {
         const { title, language, code, usecase, tags } = formData;
 
         if (!title || !language || !usecase || !code || tags.length === 0) {
             setShowTagAlert(false);
             setShowWarningAlert(true);
-
-            // Hide the warning alert after 1.5 seconds
-            setTimeout(() => {
-                setShowWarningAlert(false);
-            }, 1500);
-
+            setTimeout(() => setShowWarningAlert(false), 1500);
             return;
         }
 
-        // Create updated snippet object
-        const updatedSnippet = { id, title, language, code, usecase, tags };
+        try {
+            const token = localStorage.getItem('token'); // Get the stored token
 
-        // Update the snippets in localStorage
-        const existingSnippets = store.get('snippets') || [];
-        const updatedSnippets = existingSnippets.filter(
-            (snippet) => snippet.id !== id
-        );
-        // Add updated snippet to the start
-        updatedSnippets.unshift(updatedSnippet);
+            const response = await axios.put(
+                `${import.meta.env.VITE_API_BASE_URL}/api/update-snippet/${id}`,
+                {
+                    title,
+                    language,
+                    code,
+                    usecase,
+                    tags,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`, // Send token in header
+                    },
+                }
+            );
 
-        store.set('snippets', updatedSnippets);
-
-        setShowWarningAlert(false);
-        setShowModal(true);
+            if (response.status === 200) {
+                setShowWarningAlert(false);
+                setShowModal(true);
+            }
+        } catch (err) {
+            console.error("Error updating snippet:", err);
+            alert("Failed to update snippet. Please try again.");
+        }
     };
 
     const handleTags = () => {
         if (formData.tags.length === 4) {
             setShowWarningAlert(false);
             setShowTagAlert(true);
-
-            // Hide the tag alert after 1.5 seconds
-            setTimeout(() => {
-                setShowTagAlert(false);
-            }, 2500);
-
+            setTimeout(() => setShowTagAlert(false), 2500);
             return;
         }
 
@@ -117,7 +115,6 @@ const UpdatePage = () => {
             </h1>
             <section>
                 <Container>
-                    {/* Warning Alert */}
                     {showWarningAlert && (
                         <AppAlert
                             alertTitle=""
@@ -129,7 +126,6 @@ const UpdatePage = () => {
                         />
                     )}
 
-                    {/* Input Fields */}
                     <TextField
                         id="code-title"
                         name="title"
@@ -156,7 +152,7 @@ const UpdatePage = () => {
                         as="textarea"
                         rows={2}
                     />
-                    {/* Code Tags */}
+
                     <Row>
                         <TextField
                             id="code-tags"
@@ -164,10 +160,11 @@ const UpdatePage = () => {
                             label="Tags:"
                             value={formData.tag}
                             onChange={handleChange}
-                            placeholder="Update tags for code snippet "
+                            placeholder="Update tags for code snippet"
                             addText="ex. fundamentals, framework, algorithms"
                         />
                     </Row>
+
                     {showTagAlert && (
                         <AppAlert
                             alertTitle=""
@@ -179,6 +176,7 @@ const UpdatePage = () => {
                             setShowAlert={setShowTagAlert}
                         />
                     )}
+
                     <Button className="m-2" variant="outline-light" onClick={handleTags}>
                         + Add Tag
                     </Button>
@@ -194,6 +192,7 @@ const UpdatePage = () => {
                     >
                         Reset Tags
                     </Button>
+
                     <Row className="my-2">
                         <Stack className="m-2" direction="horizontal" gap={2}>
                             {formData.tags.map((tag, i) => (
@@ -208,7 +207,8 @@ const UpdatePage = () => {
                             ))}
                         </Stack>
                     </Row>
-                    <p>Update your code here: </p>
+
+                    <p>Update your code here:</p>
                     <CodeMirror
                         className="border rounded"
                         value={formData.code}
@@ -225,7 +225,6 @@ const UpdatePage = () => {
                 </Container>
             </section>
 
-            {/* Action Buttons */}
             <Container className="my-4 d-flex justify-content-end">
                 <Button className="m-3" variant="outline-success" size="lg" onClick={handleUpdate}>
                     Update
@@ -237,7 +236,6 @@ const UpdatePage = () => {
                 </Link>
             </Container>
 
-            {/* Notification Modal */}
             <Modal show={showModal} onHide={() => setShowModal(false)}>
                 <Modal.Header closeButton>
                     <Modal.Title>Snippet Updated</Modal.Title>
