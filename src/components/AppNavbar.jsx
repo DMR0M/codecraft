@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { Container, Button, Modal, Nav, Navbar } from 'react-bootstrap';
-import logo from '../assets/navbar-logo.png';
+import logo from '../assets/Navbar-logo.png';
 
 import { useAuth } from '../contexts/AuthContext';
 
